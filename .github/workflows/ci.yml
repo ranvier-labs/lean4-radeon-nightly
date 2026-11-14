@@ -1,0 +1,29 @@
+name: Validate Radeon distribution
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: make check build
+      - name: Check public repository boundary
+        run: |
+          python3 - <<'PY'
+          import subprocess
+          from pathlib import Path
+          for name in subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0'):
+              if not name:
+                  continue
+              path = Path(name)
+              assert path.stat().st_size < 10 * 1024 * 1024, name
+              assert not name.endswith(('.tar', '.tar.zst', '.zip', '.olean', '.so', '.log')), name
+          PY

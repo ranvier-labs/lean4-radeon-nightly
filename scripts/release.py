@@ -10,7 +10,6 @@ from pathlib import Path, PurePosixPath
 import re
 import subprocess
 import tarfile
-import tempfile
 
 REPO = 'ranvier-labs/lean4-radeon-nightly'
 REQUIRED = {'bin/lean', 'bin/lake', 'bin/leanc', 'lib/lean/Lean/Rdna.olean',
@@ -52,9 +51,10 @@ def validate_record(record):
             'expected immutable release asset URL')
     require(re.fullmatch(r'[0-9a-f]{64}', archive.get('sha256', '')), 'invalid SHA-256')
     require(type(archive.get('size')) is int and archive['size'] > 0, 'invalid archive size')
+    require(archive['size'] < 2**31, 'GitHub release assets must be under 2 GiB')
 
 
-def audit_tar(tar):
+def audit_tar(tar, expected_root=None):
     root = None
     seen = set()
     manifest = []
@@ -64,6 +64,7 @@ def audit_tar(tar):
                 f'unsafe archive path: {member.name}')
         root = root or path.parts[0]
         require(path.parts[0] == root and root.startswith('lean-'), 'expected one Lean directory')
+        require(expected_root is None or root == expected_root, 'archive root must match its release name')
         require(member.isdir() or member.isfile(), f'links/devices forbidden: {member.name}')
         relative = PurePosixPath(*path.parts[1:])
         if len(path.parts) == 1:
@@ -83,12 +84,18 @@ def audit_tar(tar):
     return sorted(manifest, key=lambda entry: entry['path'])
 
 
-def audit_archive(path):
-    with tempfile.TemporaryFile() as stream:
-        subprocess.run(['zstd', '-q', '-d', '-c', str(path)], stdout=stream, check=True)
-        stream.seek(0)
-        with tarfile.open(fileobj=stream) as tar:
-            return audit_tar(tar)
+def audit_archive(path, expected_root=None):
+    command = ['zstd', '-q', '-d', '-c', '--', str(path)]
+    with subprocess.Popen(command, stdout=subprocess.PIPE) as decoder:
+        with decoder.stdout as stream:
+            with tarfile.open(fileobj=stream, mode='r|') as tar:
+                manifest = audit_tar(tar, expected_root)
+            # Consume any trailing tar padding so zstd can finish verifying the frame.
+            while stream.read(1024 * 1024):
+                pass
+        if status := decoder.wait():
+            raise subprocess.CalledProcessError(status, command)
+        return manifest
 
 
 def write_record(path, record):
@@ -128,7 +135,7 @@ def main():
                              'sha256': digest,
                              'url': f'https://github.com/{REPO}/releases/download/{record["release_id"]}/{name}'}
         validate_record(record)
-        manifest = audit_archive(args.archive)
+        manifest = audit_archive(args.archive, name.removesuffix('.tar.zst'))
         require(not args.output.exists(), 'output directory already exists; use a fresh directory')
         args.output.mkdir(parents=True)
         write_record(args.output / f'{record["release_id"]}.json', record)

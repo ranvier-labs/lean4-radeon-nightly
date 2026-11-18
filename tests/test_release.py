@@ -48,17 +48,17 @@ class ReleaseTests(unittest.TestCase):
 
     def test_reject_mutable_urls_and_wrong_checksums(self):
         for field, value in [('url', 'https://example.org/binary'), ('sha256', 'bad'),
-                             ('size', 0), ('name', 'arbitrary.tar.zst')]:
+                             ('size', 0), ('size', 2**31), ('name', 'arbitrary.tar.zst')]:
             record = self.record()
             record['archive'][field] = value
             with self.assertRaises(ValueError):
                 release.validate_record(record)
 
-    def archive(self, extra=None):
+    def archive(self, extra=None, root='lean-test'):
         stream = io.BytesIO()
         with tarfile.open(fileobj=stream, mode='w') as tar:
             for path in release.REQUIRED:
-                info = tarfile.TarInfo('lean-test/' + path)
+                info = tarfile.TarInfo(root + '/' + path)
                 info.size = 1
                 tar.addfile(info, io.BytesIO(b'x'))
             if extra:
@@ -70,6 +70,10 @@ class ReleaseTests(unittest.TestCase):
         with self.archive() as tar:
             manifest = release.audit_tar(tar)
         self.assertEqual(len(manifest), len(release.REQUIRED))
+
+    def test_release_root_matches_filename(self):
+        with self.archive() as tar, self.assertRaisesRegex(ValueError, 'archive root'):
+            release.audit_tar(tar, 'lean-different-release-linux')
 
     def test_private_sources_and_unsafe_entries(self):
         for name in ['lean-test/src/lean/Lean.lean', 'lean-test/lib/Lean.lean',
@@ -112,7 +116,7 @@ class ReleaseTests(unittest.TestCase):
             root = Path(tmp)
             record = self.record()
             tar_path = root / 'binary.tar'
-            with self.archive() as tar:
+            with self.archive(root=record['archive']['name'].removesuffix('.tar.zst')) as tar:
                 tar.fileobj.seek(0)
                 tar_path.write_bytes(tar.fileobj.read())
             archive = root / record['archive']['name']

@@ -5,9 +5,9 @@ The compiler is built separately; this repository holds distribution tooling,
 release metadata, and installation instructions. Compiler sources and history
 are not published here.
 
-**No binary release has been published yet.** An empty release index means that
-no candidate has completed the release gates. Preparing this repository does not
-start a nightly build schedule.
+The first Linux x86_64 binary release was tested on `gfx1151` with ROCm
+`10.0.0-4`. Download [nightly-2026-11-18](https://github.com/ranvier-labs/lean4-radeon-nightly/releases/tag/nightly-2026-11-18).
+Builds and publication currently run on demand.
 
 The initial platform is **Linux x86_64**. Kernel compilation requires a ROCm
 LLVM toolchain; GPU execution additionally requires a supported AMD GPU and HIP
@@ -19,23 +19,26 @@ For workloads that launch cooperative kernels on gfx1151, see the
 
 ## Installation
 
-Choose an exact tag from [Releases](https://github.com/ranvier-labs/lean4-radeon-nightly/releases).
-Once a release exists, put its identifier in your project's `lean-toolchain`:
+To pin the first release, put this line in your project's `lean-toolchain` file.
 
 ```text
-ranvier-labs/lean4-radeon-nightly:nightly-YYYY-MM-DD
+ranvier-labs/lean4-radeon-nightly:nightly-2026-11-18
 ```
 
-Or install it explicitly:
+You can also install it directly with elan.
 
 ```sh
-elan toolchain install ranvier-labs/lean4-radeon-nightly:nightly-YYYY-MM-DD
+elan toolchain install ranvier-labs/lean4-radeon-nightly:nightly-2026-11-18
 ```
 
-The dates above are placeholders, not available releases. For a manual install,
-download the `.tar.zst` archive and its `.sha256` sidecar from the same release,
-verify with `sha256sum -c`, then extract it and use `elan toolchain link`.
-Elan installation does not itself verify our checksum sidecar.
+For a manual install, download the `.tar.zst` archive and its `.sha256` sidecar
+from the same release. Verify the archive in the download directory.
+
+```sh
+sha256sum -c lean-4.37.0-radeon-nightly.20261118.ga3df551593-linux.tar.zst.sha256
+```
+
+Then extract the archive and use `elan toolchain link`.
 
 ## Release policy
 

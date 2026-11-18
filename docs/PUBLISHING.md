@@ -78,6 +78,13 @@ authenticated `gh` and Git credentials authorized to write this repository:
 bash scripts/publish.sh /path/to/lean-VERSION-linux.tar.zst /path/to/evidence.json
 ```
 
+To append reviewed public notes to the standard installation instructions,
+pass `--notes-file FILE` after the evidence path. For a candidate validated
+with the stock gfx1151 cooperative-launch workaround, use
+`--notes-file docs/gfx1151-cooperative-launch.md`. Include the exact host OS,
+ROCm version and tested target in the evidence record. Confirm the compressed
+archive is under GitHub's 2 GiB per-asset limit.
+
 The script audits the actual archive, computes checksums and a file manifest,
 creates a draft prerelease, downloads every uploaded asset and compares it to
 the original, then publishes the release. It commits metadata only after the

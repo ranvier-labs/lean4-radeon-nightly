@@ -14,6 +14,9 @@ LLVM toolchain; GPU execution additionally requires a supported AMD GPU and HIP
 runtime. Each release records its tested GPU target, ROCm version, and host OS.
 Support for a target is not a claim that every Radeon GPU has been tested.
 
+For workloads that launch cooperative kernels on gfx1151, see the
+[stock-driver workaround and tested configuration](docs/gfx1151-cooperative-launch.md).
+
 ## Installation
 
 Choose an exact tag from [Releases](https://github.com/ranvier-labs/lean4-radeon-nightly/releases).

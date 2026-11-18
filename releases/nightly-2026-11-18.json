@@ -1,0 +1,22 @@
+{
+  "archive": {
+    "name": "lean-4.37.0-radeon-nightly.20261118.ga3df551593-linux.tar.zst",
+    "sha256": "7647a70eff68e209a23e95ac2419d8963789df651506ab2b01458f7e14c8fc43",
+    "size": 738908801,
+    "url": "https://github.com/ranvier-labs/lean4-radeon-nightly/releases/download/nightly-2026-11-18/lean-4.37.0-radeon-nightly.20261118.ga3df551593-linux.tar.zst"
+  },
+  "gpu_target": "gfx1151",
+  "host_os": "AMD Ryzen AI Developer Platform 1 (rex), Linux 7.2.7+rex-amd64",
+  "platform": "linux/x86_64",
+  "release_id": "nightly-2026-11-18",
+  "rocm_version": "10.0.0-4",
+  "schema_version": 1,
+  "source_commit": "a3df5515932c7ad23ebdf173f4b1bb9469edc403",
+  "validation": {
+    "build": "passed",
+    "gpu_execution": "passed",
+    "installed_smoke": "passed",
+    "tests": "passed"
+  },
+  "version": "4.37.0-radeon-nightly.20261118.ga3df551593"
+}
